@@ -1,13 +1,14 @@
 # -*-coding:utf-8 
 '''
-we define the functions used by importance calculate here
+和属性重要程度相关的计算函数定义
 '''
 import numpy as np
 import math
 
 def get_idf_categorical(total, contains):
     # avoid the exception of divide zero.
-    contains += 1
+    if contains <= 0:
+        return 0
     return math.log(total / contains, 10)
 
 def get_idf_numeric(values, v):
@@ -20,18 +21,3 @@ def get_idf_numeric(values, v):
         body = (values[j] - v) / h
         denominator += math.exp(-0.5 * pow(body, 2))
     return math.log(n / denominator, 10)
-
-def get_idf_numeric_range(values, v_range):
-    # TODO refer to QuestionA, how to determine the min v
-    min_idf = 1
-    for v in v_range:
-        idf = get_idf_numeric(values, v)
-        if idf < min_idf:
-            min_idf = idf
-    return min_idf
-
-# main entrance of the importance calc.
-def get_attr_weight(doc, queried_attrs, attr):
-    pass:   
-
-if __name__ == "__main__":

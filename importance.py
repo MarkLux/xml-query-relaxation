@@ -6,8 +6,6 @@ import numpy as np
 import math
 import settings
 
-ATTR_WEIGHTS = {}
-
 def get_idf_categorical(total, contains):
     # avoid the exception of divide zero.
     if contains <= 0:

@@ -14,9 +14,15 @@ TOP_TAG = 'hotels'
 # the single element tag
 NODE_TAG = 'hotel'
 
+SOURCE_FILE_PATH = 'test/demo.xml'
+
 # 属性分类枚举
 class AttributeType(Enum):
     categorical = 0
     numerical = 1
     spatio_temporal = 2
 
+ATTR_TYPES = {
+    'title': AttributeType.categorical,
+    'score': AttributeType.numerical
+}

@@ -10,10 +10,12 @@ def get_idf_categorical(total, contains):
     # avoid the exception of divide zero.
     if contains <= 0:
         return 0
-    return math.log(total / contains, 10)
+    return math.log(total * 1.0 / contains, 10)
 
 def get_idf_numeric(values, v):
     # calc the standard deviation of whole values.
+    if not v in values:
+        return 0
     n = len(values)
     std_dev = np.std(values)
     h = 1.06 * std_dev * pow(n, -0.2)

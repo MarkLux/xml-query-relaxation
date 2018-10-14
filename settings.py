@@ -9,12 +9,12 @@ the top constant settings in the expriment.
 THRESHOLD = 0.7
 
 # the top element tag in raw xml file
-TOP_TAG = 'hotels'
+TOP_TAG = 'nodes'
 
 # the single element tag
-NODE_TAG = 'hotel'
+NODE_TAG = 'node'
 
-SOURCE_FILE_PATH = 'test/demo.xml'
+SOURCE_FILE_PATH = 'test/test.xml'
 
 # 属性分类枚举
 class AttributeType(Enum):
@@ -23,6 +23,11 @@ class AttributeType(Enum):
     spatio_temporal = 2
 
 ATTR_TYPES = {
-    'title': AttributeType.categorical,
-    'score': AttributeType.numerical
+    'name': AttributeType.categorical,
+    'price': AttributeType.numerical,
+    'score': AttributeType.numerical,
+    'type': AttributeType.categorical,
+    'latitdue': AttributeType.spatio_temporal,
+    'longtitude': AttributeType.spatio_temporal,
+    'time': AttributeType.spatio_temporal
 }

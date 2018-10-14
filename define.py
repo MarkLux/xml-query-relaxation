@@ -17,6 +17,9 @@ class Attribute(object):
         self.attr_idf = {}
     
     def add_val(self, val):
+        # 如果是numerical的属性，这里要把文本值转换成小数
+        if (self.typ == settings.AttributeType.numerical):
+            val = float(val)
         self.values.append(val)
 
     def get_idf(self, val):

@@ -6,7 +6,7 @@ the top constant settings in the expriment.
 '''
 
 # control the general relaxation threshold
-THRESHOLD = 0.7
+THRESHOLD = 0.5
 
 # the top element tag in raw xml file
 TOP_TAG = 'nodes'
@@ -15,6 +15,9 @@ TOP_TAG = 'nodes'
 NODE_TAG = 'node'
 
 SOURCE_FILE_PATH = 'test/test.xml'
+
+# 用于调整相似度表现的辅助值
+SIM_A = 0.5
 
 # 属性分类枚举
 class AttributeType(Enum):

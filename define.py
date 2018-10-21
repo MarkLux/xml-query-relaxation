@@ -10,17 +10,21 @@ class Attribute(object):
     def __init__(self, name, typ, depth = 0):
         self.name = name
         # 严格规定，values的类型只有数字和字符两种可能性，不存在其他的复杂类型
-        self.values = []
+        # 保存id和value的映射关系
+        self.values = {}
+        # 缓存，扁平化数值
+        self.flat_values = []
         self.typ = typ
         self.depth = depth
         # idf辅助表，缓存已经计算出的idf，减少重复计算
         self.attr_idf = {}
     
-    def add_val(self, val):
+    def add_val(self, identifier, val):
         # 如果是numerical的属性，这里要把文本值转换成小数
         if (self.typ == settings.AttributeType.numerical):
             val = float(val)
-        self.values.append(val)
+        self.values[identifier] = val
+        self.flat_values.append(val)
 
     def get_idf(self, val):
         # 如果用户输入的限制条件是单个值, 如: view = sea, 区分数值型和分类型属性
@@ -30,10 +34,10 @@ class Attribute(object):
             return self.attr_idf.get(val)
 
         if self.typ == settings.AttributeType.categorical:
-            counter = collections.Counter(self.values)
-            idf =  importance.get_idf_categorical(len(self.values), counter.get(val) or 0)
+            counter = collections.Counter(self.flat_values)
+            idf =  importance.get_idf_categorical(len(self.flat_values), counter.get(val) or 0)
         elif self.typ == settings.AttributeType.numerical:
-            idf =  importance.get_idf_numeric(self.values, val)
+            idf =  importance.get_idf_numeric(self.flat_values, val)
         else:
             idf = None
 
@@ -48,7 +52,7 @@ class Attribute(object):
             # 如果是数值型变量，要将区间先扩展成所有可能的取值集合，认为所有的区间都是开区间
             start = vals[0]
             end = vals[1]
-            value_set = set(self.values)
+            value_set = set(self.flat_values)
             vals = [i for i in value_set if i >= start and i <= end]
 
         # 最终输出所有可能取值里，idf最小的那个
@@ -58,3 +62,9 @@ class Attribute(object):
             if v_idf < min_idf:
                 min_idf = v_idf
         return min_idf
+
+    # 获取一个属性出现的次数
+    def get_occurs(self, val):
+        counter = collections.Counter(self.flat_values)
+        return counter.get(val)
+        

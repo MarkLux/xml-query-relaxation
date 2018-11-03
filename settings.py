@@ -34,3 +34,6 @@ ATTR_TYPES = {
     'longtitude': AttributeType.spatio_temporal,
     'time': AttributeType.spatio_temporal
 }
+
+# 数值型属性进行分桶时的默认桶数
+BUCKET_NUM = 7

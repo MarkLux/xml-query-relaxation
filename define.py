@@ -67,4 +67,14 @@ class Attribute(object):
     def get_occurs(self, val):
         counter = collections.Counter(self.flat_values)
         return counter.get(val)
-        
+
+'''
+结果分类中使用的数值桶结构
+'''
+class Bucket(object):
+    def __init__(self, typ):
+        self.typ = typ
+        self.k = ''
+        self.k_range = []
+        self.cnt = 0
+

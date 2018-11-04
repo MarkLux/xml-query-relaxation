@@ -2,8 +2,8 @@
 
 import numpy as np
 import math
-from define import Attribute, Bucket
-from settings import AttributeType, BUCKET_NUM
+from define import Attribute, Bucket, NavNode
+from settings import AttributeType, BUCKET_NUM, NAV_TREE_MAX_NODE
 from collections import Counter
 
 '''
@@ -18,6 +18,7 @@ def calc_category_weights(r_attrs, d_attrs):
         d_attr = d_attrs.get(k)
         d_buckets = build_buckets(d_attr.typ, d_attr.flat_values, BUCKET_NUM)
         r_buckets = build_r_buckets(attr.typ, d_buckets, attr.flat_values)
+        import pdb;pdb.set_trace()
         kl_dis = calc_kl_distance(d_buckets, r_buckets, len(d_attr.flat_values), len(attr.flat_values))
         print kl_dis
         sum_distance += kl_dis
@@ -101,6 +102,61 @@ def query_vals(low, up, values):
         if low <= v and v < up:
             vals.append(v)
     return vals
+
+'''
+导航树生成算法
+weights -> 计算得出的分类权重集合
+attrs -> 以属性辅助表方式储存的结果集
+buckets_map -> 以dict方式储存的所有属性的分桶结果 
+'''
+def generate_nav_tree(weights, attrs, buckets_map):
+    level = 0
+    # 1. 生成一个空的根节点
+    root = NavNode('root', '', level, attrs.values.keys())
+    # 储存level - 1 层所有的分类节点
+    level_categories = [root]
+    while weights:
+        level += 1
+        # 暂存本level生成的所有新分类节点
+        temp_level_categories = []
+        # 2. 选定本层要分类的属性，并将其从map中移除
+        category_name = select_category(weights)
+        weights.pop(category_name)
+        # 3. 枚举该属性的所有桶
+        attr = attrs.get(category_name)
+        buckets = buckets_map.get(category_name)
+        for category in level_categories:
+            if len(category.indexes) <= NAV_TREE_MAX_NODE:
+                # 子节点数已经满足限制，无需再进一步分类了
+                continue
+            for bucket in buckets:
+                child = build_nav_node(attr.name, bucket, attr.values, category.indexes, level)
+                temp_level_categories.append(child)
+                category.add_child(child)
+    return root
+            
+
+def build_nav_node(attr_name, bucket, values, indexes, level):
+    this_indexes = []
+    for id in indexes:
+        val = values.get(id)
+        attr_val = val.get(attr_name)
+        if bucket.typ == AttributeType.categorical:
+            if attr_val == bucket.k:
+                this_indexes.append(id)
+        elif bucket.typ == AttributeType.categorical:
+            if bucket.k_range[0] <= attr_val and attr_val < bucket.k_range[1]:
+                this_indexes.append(id)
+    return NavNode(attr_name, bucket.k, level, this_indexes)
+
+
+
+def select_category(category_weights):
+    max_val = max(category_weights.values())
+    for k, v in category_weights.items():
+        if v == max_val:
+            return k
+
 
 if __name__ == "__main__":
     # 模拟验证权重的合理性

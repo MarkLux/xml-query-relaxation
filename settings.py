@@ -37,3 +37,6 @@ ATTR_TYPES = {
 
 # 数值型属性进行分桶时的默认桶数
 BUCKET_NUM = 3
+
+# 导航树叶子节点最大个数
+NAV_TREE_MAX_NODE = 3

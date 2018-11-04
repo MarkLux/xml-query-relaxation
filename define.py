@@ -78,3 +78,19 @@ class Bucket(object):
         self.k_range = []
         self.cnt = 0
 
+'''
+导航树节点定义
+'''
+class NavNode(object):
+    def __init__(self, attr, label, level, indexes):
+        self.level = level
+        self.children = []
+        self.attr = attr
+        self.label = label
+        self.indexes = indexes
+
+    def add_index(self, id):
+        self.indexes.append(id)
+
+    def add_child(self, child):
+        self.children.append(child)

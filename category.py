@@ -13,19 +13,21 @@ r_attrs -> 在结果集上计算得出的属性辅助表(map)
 '''
 def calc_category_weights(r_attrs, d_attrs):
     weights = {}
+    r_buckets_map = {}
     sum_distance = 0
     for k, attr in r_attrs.items():
         d_attr = d_attrs.get(k)
         d_buckets = build_buckets(d_attr.typ, d_attr.flat_values, BUCKET_NUM)
         r_buckets = build_r_buckets(attr.typ, d_buckets, attr.flat_values)
-        import pdb;pdb.set_trace()
         kl_dis = calc_kl_distance(d_buckets, r_buckets, len(d_attr.flat_values), len(attr.flat_values))
         print kl_dis
         sum_distance += kl_dis
         weights[k] = kl_dis
+        # 进一步处理r_buckets
+        r_buckets_map[k] = [i for i in r_buckets if i.cnt > 0]
     for k, w in weights.items():
         weights[k] = w / sum_distance
-    return weights
+    return weights, r_buckets_map
 
 '''
 结果分类相关计算
@@ -73,6 +75,7 @@ def build_r_buckets(typ, d_buckets, values):
             rb.cnt = counter.get(db.k) or 0
         elif typ == AttributeType.numerical:
             rb.cnt = len(query_vals(db.k_range[0], db.k_range[1], values))
+            rb.k_range = db.k_range
         r_buckets.append(rb)
     return r_buckets
 
@@ -111,8 +114,10 @@ buckets_map -> 以dict方式储存的所有属性的分桶结果
 '''
 def generate_nav_tree(weights, attrs, buckets_map):
     level = 0
-    # 1. 生成一个空的根节点
-    root = NavNode('root', '', level, attrs.values.keys())
+    # 1. 生成一个空的根节点, 所有的id从attrs的第一个里面取
+    for a in attrs.values():
+        root = NavNode('root', '', level, a.values.keys())
+        break
     # 储存level - 1 层所有的分类节点
     level_categories = [root]
     while weights:
@@ -133,6 +138,7 @@ def generate_nav_tree(weights, attrs, buckets_map):
                 child = build_nav_node(attr.name, bucket, attr.values, category.indexes, level)
                 temp_level_categories.append(child)
                 category.add_child(child)
+        level_categories = temp_level_categories
     return root
             
 
@@ -140,12 +146,11 @@ def build_nav_node(attr_name, bucket, values, indexes, level):
     this_indexes = []
     for id in indexes:
         val = values.get(id)
-        attr_val = val.get(attr_name)
         if bucket.typ == AttributeType.categorical:
-            if attr_val == bucket.k:
+            if val == bucket.k:
                 this_indexes.append(id)
-        elif bucket.typ == AttributeType.categorical:
-            if bucket.k_range[0] <= attr_val and attr_val < bucket.k_range[1]:
+        elif bucket.typ == AttributeType.numerical:
+            if bucket.k_range[0] <= val and val < bucket.k_range[1]:
                 this_indexes.append(id)
     return NavNode(attr_name, bucket.k, level, this_indexes)
 
@@ -157,6 +162,10 @@ def select_category(category_weights):
         if v == max_val:
             return k
 
+def dfs_print_nav_tree(blank, node):
+    print blank + '[{attr}]({label}) -> {cnt}'.format(attr=node.attr, label=node.label, cnt=len(node.indexes))
+    for child in node.children:
+        dfs_print_nav_tree(blank + '\t', child)
 
 if __name__ == "__main__":
     # 模拟验证权重的合理性
@@ -211,6 +220,8 @@ if __name__ == "__main__":
         if i in target_ids:
             r_attrs['bedrooms'].add_val(i, bd_values[i])
     
-    weights = calc_category_weights(r_attrs, d_attrs)
-
+    weights, r_buckets_map = calc_category_weights(r_attrs, d_attrs)
     print weights
+    nav_tree = generate_nav_tree(weights, r_attrs, r_buckets_map)
+    dfs_print_nav_tree('', nav_tree)
+    import pdb;pdb.set_trace()

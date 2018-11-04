@@ -39,4 +39,4 @@ ATTR_TYPES = {
 BUCKET_NUM = 3
 
 # 导航树叶子节点最大个数
-NAV_TREE_MAX_NODE = 3
+NAV_TREE_MAX_NODE = 2

@@ -36,4 +36,4 @@ ATTR_TYPES = {
 }
 
 # 数值型属性进行分桶时的默认桶数
-BUCKET_NUM = 7
+BUCKET_NUM = 3

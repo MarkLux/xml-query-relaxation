@@ -40,3 +40,12 @@ BUCKET_NUM = 3
 
 # 导航树叶子节点最大个数
 NAV_TREE_MAX_NODE = 2
+
+# 相似度最小接受系数（γ）
+SIM_MIN_PROB = 0.7
+
+# 空间距离最大距离
+SPACE_MAX_DIST = 1
+
+# 时间距离最大距离
+TIME_MAX_DIST = 1

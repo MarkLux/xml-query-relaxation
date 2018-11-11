@@ -63,27 +63,28 @@ def get_common_wset(ak, aj, x, y):
     vk_y = []
     x_ids = []
     y_ids = []
-    for k, v in aj.values.items():
-        if v == x:
-            x_ids.append(k)
-        elif v == k:
-            y_ids.append(k)
-    for k, v in ak.values.items():
-        if k in x_ids:
-            vk_x.append(v)
-        if k in y_ids:
-            vk_y.append(v)
+    for v in aj.values:
+        if v.val == x:
+            x_ids.append(v.index)
+        elif v.val == y:
+            y_ids.append(v.index)
+    for v in ak.values:
+        if v.index in x_ids:
+            vk_x.append(v.val)
+        if v.index in y_ids:
+            vk_y.append(v.val)
     return set(vk_x + vk_y)
 
 # 计算icp
 def get_icp(ak, vk, aj, x):
     common = 0
     total = 0
-    for k, v in aj.values.items():
-        if v == x:
+    for v in aj.values:
+        if v.val == x:
             total += 1
-        if ak.values[k] == vk:
-            common += 1
+        for vv in ak.values:
+            if vv.index == v.index and vv.val == vk:
+                common += 1
     return common * 1.0 / total
 
 # 计算时间属性的相似度, 注意第一个入参必须是用户指定的数据
@@ -146,8 +147,25 @@ if __name__ == "__main__":
             print str(sim) + ' .... ' + str(mock)
             cnt += 1
 
+    for mock in time_mock_data:
+        if not mock['hit']:
+            print mock
+
+    print cnt
+
     print '-----'
 
+    cnt = 0
+
+    time_mock_data_no_prob = []
+
+    for mock in time_mock_data:
+        sim = get_time_sim(mock['time'], query_p, 1.0)
+        if sim > threshold:
+            mock['hit'] = True
+            print str(sim) + ' .... ' + str(mock)
+            cnt += 1
+        
     for mock in time_mock_data:
         if not mock['hit']:
             print mock

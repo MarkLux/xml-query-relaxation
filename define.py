@@ -10,8 +10,8 @@ class Attribute(object):
     def __init__(self, name, typ, depth = 0):
         self.name = name
         # 严格规定，values的类型只有数字和字符两种可能性，不存在其他的复杂类型
-        # 保存id和value的映射关系
-        self.values = {}
+        # Val对象数组
+        self.values = []
         # 缓存，扁平化数值
         self.flat_values = []
         self.typ = typ
@@ -19,11 +19,12 @@ class Attribute(object):
         # idf辅助表，缓存已经计算出的idf，减少重复计算
         self.attr_idf = {}
     
-    def add_val(self, identifier, val):
+    def add_val(self, identifier, val, prob = 1.0):
         # 如果是numerical的属性，这里要把文本值转换成小数
         if (self.typ == settings.AttributeType.numerical):
             val = float(val)
-        self.values[identifier] = val
+        new_val = Val(identifier, val, prob)
+        self.values.append(new_val)
         self.flat_values.append(val)
 
     def get_idf(self, val):
@@ -63,11 +64,13 @@ class Attribute(object):
                 min_idf = v_idf
         return min_idf
 
-    # 获取一个属性出现的次数
+    # 获取一个属性出现的次数, 并使用概率加权
     def get_occurs(self, val):
-        counter = collections.Counter(self.flat_values)
-        return counter.get(val)
-
+        occur = 0
+        for v in self.values:
+            if v.val == val:
+                occur += v.prob
+        return occur
 '''
 结果分类中使用的数值桶结构
 '''
@@ -94,3 +97,12 @@ class NavNode(object):
 
     def add_child(self, child):
         self.children.append(child)
+
+'''
+值定义
+'''
+class Val(object):
+    def __init__(self, index, val, prob=1.0):
+        self.index = index
+        self.val = val
+        self.prob = prob

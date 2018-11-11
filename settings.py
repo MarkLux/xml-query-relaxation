@@ -23,16 +23,16 @@ SIM_A = 0.5
 class AttributeType(Enum):
     categorical = 0
     numerical = 1
-    spatio_temporal = 2
+    time = 2
+    space = 3
 
 ATTR_TYPES = {
     'name': AttributeType.categorical,
     'price': AttributeType.numerical,
     'score': AttributeType.numerical,
     'type': AttributeType.categorical,
-    'latitdue': AttributeType.spatio_temporal,
-    'longtitude': AttributeType.spatio_temporal,
-    'time': AttributeType.spatio_temporal
+    'timeporal': AttributeType.time,
+    'spatial': AttributeType.space,
 }
 
 # 数值型属性进行分桶时的默认桶数
@@ -49,3 +49,7 @@ SPACE_MAX_DIST = 1
 
 # 时间距离最大距离
 TIME_MAX_DIST = 1
+
+TIME_THRESHOLD = 0.8
+
+SPACE_THRESHOLD = 0.8

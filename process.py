@@ -75,6 +75,55 @@ def query_relax(attrs, sub_thresholds, weights, raw_query, times = 0):
             relaxed_query[k] = sim.get_relaxed_range_numerical(attrs, sub_thresholds, k, v)
     return relaxed_query
 
+'''
+核心查询入口
+q: 用户查询，data: xml数据集， attrs: 第一次遍历时得到的索引
+输出：xml树集合
+'''
+def query(q, data, attrs):
+    # 简单起见，id直接从0开始顺序递增即可
+    ids = range(0, len(data))
+    hit_ids = _query(q, ids, attrs)
+    return filter_xml_by_id(data, hit_ids)
+
+def _query(q, ids, attrs):
+    # 先在辅助表上遍历查询获取id，然后再用id去取完整的xml树，简化流程
+    for k, rang in q.items():
+        attr = attrs.get(k)
+        sub_id = []
+        if attr.typ == settings.AttributeType.categorical:
+            # 分类型属性
+            for v in attr.values:
+                if v.val in rang:
+                    sub_id.append(v.index)
+        elif attr.typ == settings.AttributeType.numerical:
+            # 数值型属性
+            for v in attr.values:
+                if rang[0] <= v.val and v.val < rang[1]:
+                    sub_id.append(v.index)
+        elif attr.typ == settings.AttributeType.time:
+            # 时间属性
+            for v in attr.values:
+                if sim.get_time_sim(rang, v.val, v.prob) >= settings.TIME_THRESHOLD:
+                    sub_id.append(v.index)
+        else:
+            # 空间属性
+            for v in attr.values:
+                if sim.get_space_sim(rang, v.val, v.prob) >= settings.SPACE_THRESHOLD:
+                    sub_id.append(v.index)
+        # 求交集
+        ids = ids.intersection(set(sub_id))
+    return ids
+
+# 根据id过滤选出符合条件的xml子树
+def filter_xml_by_id(nodes, ids):
+    result = []
+    for node in nodes:
+        id = node.attributes.item(0).value
+        if id in ids:
+            result.append(id)
+    return result
+
 if __name__ == "__main__":
     nodes = reader.read_xml_file(settings.SOURCE_FILE_PATH)
     attrs = build_attrs(nodes)

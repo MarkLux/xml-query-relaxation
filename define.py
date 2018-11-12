@@ -12,6 +12,8 @@ class Attribute(object):
         # 严格规定，values的类型只有数字和字符两种可能性，不存在其他的复杂类型
         # Val对象数组
         self.values = []
+        # valMap，用于兼容一些历史逻辑
+        self.val_map = {}
         # 缓存，扁平化数值
         self.flat_values = []
         self.typ = typ
@@ -25,6 +27,7 @@ class Attribute(object):
             val = float(val)
         new_val = Val(identifier, val, prob)
         self.values.append(new_val)
+        self.val_map[identifier] = val
         self.flat_values.append(val)
 
     def get_idf(self, val):

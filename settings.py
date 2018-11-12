@@ -6,15 +6,15 @@ the top constant settings in the expriment.
 '''
 
 # control the general relaxation threshold
-THRESHOLD = 0.5
+THRESHOLD = 0.7
 
 # the top element tag in raw xml file
-TOP_TAG = 'nodes'
+TOP_TAG = 'wheathers'
 
 # the single element tag
-NODE_TAG = 'node'
+NODE_TAG = 'wheather'
 
-SOURCE_FILE_PATH = 'test/test.xml'
+SOURCE_FILE_PATH = 'test/result.xml'
 
 # 用于调整相似度表现的辅助值
 SIM_A = 0.5
@@ -27,12 +27,17 @@ class AttributeType(Enum):
     space = 3
 
 ATTR_TYPES = {
-    'name': AttributeType.categorical,
-    'price': AttributeType.numerical,
-    'score': AttributeType.numerical,
+    'position': AttributeType.categorical,
+    'temperature': AttributeType.numerical,
+    'humidity': AttributeType.numerical,
     'type': AttributeType.categorical,
-    'timeporal': AttributeType.time,
-    'spatial': AttributeType.space,
+    'windForce': AttributeType.numerical,
+    'windDirection': AttributeType.categorical,
+    'date': AttributeType.numerical,
+    'city': AttributeType.categorical,
+    'district': AttributeType.categorical,
+    'time': AttributeType.time,
+    'space': AttributeType.space
 }
 
 # 数值型属性进行分桶时的默认桶数

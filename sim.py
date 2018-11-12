@@ -27,8 +27,11 @@ def get_relaxed_range_categorical(attrs, weights, attr_name, query):
         query = [query]
     final_result += query
     for q in query:
-        for v in attr.flat_values:
-            if get_sim_categorical(attrs, weights, attr_name, q, v) > settings.THRESHOLD:
+        for v in set(attr.flat_values):
+            # import pdb;pdb.set_trace()
+            s = get_sim_categorical(attrs, weights, attr_name, q, v)
+            print v, s
+            if s > settings.THRESHOLD:
                 final_result.append(v)
     return set(final_result)
 

@@ -116,7 +116,7 @@ def generate_nav_tree(weights, attrs, buckets_map):
     level = 0
     # 1. 生成一个空的根节点, 所有的id从attrs的第一个里面取
     for a in attrs.values():
-        root = NavNode('root', '', level, a.values.keys())
+        root = NavNode('root', '', level, a.val_map.keys())
         break
     # 储存level - 1 层所有的分类节点
     level_categories = [root]
@@ -135,7 +135,7 @@ def generate_nav_tree(weights, attrs, buckets_map):
                 # 子节点数已经满足限制，无需再进一步分类了
                 continue
             for bucket in buckets:
-                child = build_nav_node(attr.name, bucket, attr.values, category.indexes, level)
+                child = build_nav_node(attr.name, bucket, attr.val_map, category.indexes, level)
                 temp_level_categories.append(child)
                 category.add_child(child)
         level_categories = temp_level_categories
@@ -163,9 +163,22 @@ def select_category(category_weights):
             return k
 
 def dfs_print_nav_tree(blank, node):
-    print blank + '[{attr}]({label}) -> {cnt}'.format(attr=node.attr, label=node.label, cnt=len(node.indexes))
-    for child in node.children:
-        dfs_print_nav_tree(blank + '\t', child)
+    if len(node.indexes) < 1:
+        return
+    if node.label == '':
+        print '[{attr}]({label}) -> {cnt}'.format(attr=node.attr, label=node.label, cnt=len(node.indexes))
+    else:
+        print blank + '[{attr}]({label}) -> {cnt}'.format(attr=node.attr, label=node.label, cnt=len(node.indexes))
+    for i in range(len(node.children)):
+        dfs_print_nav_tree('   ' + blank,  node.children[i])
+
+'''
+入口
+'''
+def get_nav_tree(r_attrs, d_attrs):
+    weights, r_buckets_map = calc_category_weights(r_attrs, d_attrs)
+    nav_tree = generate_nav_tree(weights, r_attrs, r_buckets_map)
+    return nav_tree
 
 if __name__ == "__main__":
     # 模拟验证权重的合理性

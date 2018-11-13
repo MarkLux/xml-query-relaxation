@@ -88,7 +88,10 @@ def get_icp(ak, vk, aj, x):
         for vv in ak.values:
             if vv.index == v.index and vv.val == vk:
                 common += 1
-    return common * 1.0 / total
+    if total > 0:
+        return common * 1.0 / total
+    else:
+        return 0
 
 # 计算时间属性的相似度, 注意第一个入参必须是用户指定的数据
 def get_time_sim(time_x, time_y, prob = 1.0):

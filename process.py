@@ -42,6 +42,11 @@ def dfs_build_attrs(id, prob, node, depth, result_map):
         if not attr and (settings.ATTR_TYPES.has_key(attr_name)):
             attr = Attribute(attr_name, settings.ATTR_TYPES.get(attr_name) , depth)
             result_map[attr_name] = attr
+        if attr:
+            if attr.typ == settings.AttributeType.time or attr.typ == settings.AttributeType.space:
+                x = float(node.attributes.item(0).value)
+                y = float(node.attributes.item(1).value)
+                attr.add_val(id, (x,y), prob)
         for child_node in node.childNodes:
             # 处理字面值
             if child_node.nodeType == xml.dom.Node.TEXT_NODE:
@@ -120,7 +125,8 @@ if __name__ == "__main__":
     attrs = build_attrs(nodes)
     q = {
         'type': u'cloudy',
-        'temperature': [11, 14]
+        'temperature': [11, 14],
+        'district': 'HaiDian'
     }
     weights = importance.get_attribute_weights(q, attrs)
     sub_thresholds = importance.get_sub_thresholds(weights)

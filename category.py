@@ -162,15 +162,22 @@ def select_category(category_weights):
         if v == max_val:
             return k
 
-def dfs_print_nav_tree(blank, node):
-    if len(node.indexes) < 1:
-        return
-    if node.label == '':
-        print '[{attr}]({label}) -> {cnt}'.format(attr=node.attr, label=node.label, cnt=len(node.indexes))
+def dfs_print_nav_tree(node, blank='', flag=True):
+    children = [c for c in node.children if len(c.indexes)]
+    if children:
+        print blank + '|_[{attr}]({label}) -> {cnt}'.format(attr=node.attr, label=node.label, cnt=len(node.indexes))
+        if flag:
+            blank += '   '
+        else:
+            blank += '|  '
+        for i in range(len(children)):
+            if i < len(children) - 1:
+                dfs_print_nav_tree(children[i], blank, False)
+            else:
+                dfs_print_nav_tree(children[i], blank, True)
     else:
-        print blank + '[{attr}]({label}) -> {cnt}'.format(attr=node.attr, label=node.label, cnt=len(node.indexes))
-    for i in range(len(node.children)):
-        dfs_print_nav_tree('   ' + blank,  node.children[i])
+        print blank + '|_[{attr}]({label}) -> {cnt}'.format(attr=node.attr, label=node.label, cnt=len(node.indexes))
+
 
 '''
 入口

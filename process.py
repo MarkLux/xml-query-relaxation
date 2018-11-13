@@ -129,4 +129,4 @@ if __name__ == "__main__":
     result_nodes = query(relaxed_query, nodes, attrs)
     result_attrs = build_attrs(result_nodes)
     nav_tree = category.get_nav_tree(result_attrs, attrs)
-    category.dfs_print_nav_tree('|_', nav_tree)
+    category.dfs_print_nav_tree(nav_tree)

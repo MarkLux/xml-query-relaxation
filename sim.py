@@ -7,7 +7,10 @@ import random
 
 # 计算两个分类型数值的相似度
 def get_sim_categorical(attrs, weights, attr_name, x, y):
-    return (1 - settings.SIM_A) * get_intra_sim_categorical(attrs, attr_name, x, y) + settings.SIM_A * get_inter_sim_categorical(attrs, weights, attr_name, x, y)
+    intra = get_intra_sim_categorical(attrs, attr_name, x, y)
+    inter = get_inter_sim_categorical(attrs, weights, attr_name, x, y)
+    # print 'inter: {inter}, intra: {intra}'.format(inter=str(inter), intra=str(intra))
+    return (1 - settings.SIM_A) * intra + settings.SIM_A * inter
 
 # 计算一个数值型属性的松弛后的区间
 def get_relaxed_range_numerical(attrs, sub_thresholds, attr_name, rang):
@@ -28,7 +31,6 @@ def get_relaxed_range_categorical(attrs, weights, attr_name, query):
     final_result += query
     for q in query:
         for v in set(attr.flat_values):
-            # import pdb;pdb.set_trace()
             s = get_sim_categorical(attrs, weights, attr_name, q, v)
             print v, s
             if s > settings.THRESHOLD:
@@ -56,7 +58,9 @@ def get_inter_sim_categorical(attrs, weights, attr_name, x, y):
             icr = 0
             wset = get_common_wset(ak, aj, x, y)
             for w in wset:
-                icr += min(get_icp(ak, w, aj, x), get_icp(ak, w, aj, y))
+                icp1 = get_icp(ak, w, aj, x)
+                icp2 = get_icp(ak, w, aj, y)
+                icr += min(icp1, icp2)
             ier += weights[k] * icr
     return ier
 
@@ -76,7 +80,7 @@ def get_common_wset(ak, aj, x, y):
             vk_x.append(v.val)
         if v.index in y_ids:
             vk_y.append(v.val)
-    return set(vk_x + vk_y)
+    return set(vk_x).intersection(set(vk_y))
 
 # 计算icp
 def get_icp(ak, vk, aj, x):
@@ -85,9 +89,9 @@ def get_icp(ak, vk, aj, x):
     for v in aj.values:
         if v.val == x:
             total += 1
-        for vv in ak.values:
-            if vv.index == v.index and vv.val == vk:
-                common += 1
+            for vv in ak.values:
+                if vv.index == v.index and vv.val == vk:
+                    common += 1
     if total > 0:
         return common * 1.0 / total
     else:

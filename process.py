@@ -69,6 +69,8 @@ def query_relax(attrs, sub_thresholds, weights, raw_query, times = 0):
             relaxed_query[k] = sim.get_relaxed_range_categorical(attrs, weights, k, v)
         elif attr.typ == settings.AttributeType.numerical:
             relaxed_query[k] = sim.get_relaxed_range_numerical(attrs, sub_thresholds, k, v)
+        else:
+            relaxed_query[k] = v
     return relaxed_query
 
 '''
@@ -76,13 +78,13 @@ def query_relax(attrs, sub_thresholds, weights, raw_query, times = 0):
 q: 用户查询，data: xml数据集， attrs: 第一次遍历时得到的索引
 输出：xml树集合
 '''
-def query(q, data, attrs):
+def query(q, data, attrs, real=False):
     # 简单起见，id直接从0开始顺序递增即可
     ids = set(range(0, len(data)))
-    hit_ids = _query(q, ids, attrs)
+    hit_ids = _query(q, ids, attrs, real)
     return filter_xml_by_id(data, hit_ids)
 
-def _query(q, ids, attrs):
+def _query(q, ids, attrs, real=False):
     # 先在辅助表上遍历查询获取id，然后再用id去取完整的xml树，简化流程
     for k, rang in q.items():
         attr = attrs.get(k)
@@ -97,18 +99,32 @@ def _query(q, ids, attrs):
             for v in attr.values:
                 if rang[0] <= v.val and v.val < rang[1]:
                     sub_id.append(int(v.index))
-        elif attr.typ == settings.AttributeType.time:
+        elif attr.typ == settings.AttributeType.time and not real:
             # 时间属性
             for v in attr.values:
-                if sim.get_time_sim(rang, v.val, v.prob) >= settings.TIME_THRESHOLD:
+                sim_t = sim.get_time_sim(rang, v.val, v.prob)
+                if sim_t >= settings.TIME_THRESHOLD:
+                    print v.index, sim_t
                     sub_id.append(int(v.index))
-        else:
+        elif attr.typ == settings.AttributeType.space and not real:
             # 空间属性
             for v in attr.values:
                 if sim.get_space_sim(rang, v.val, v.prob) >= settings.SPACE_THRESHOLD:
                     sub_id.append(int(v.index))
+        elif attr.typ == settings.AttributeType.time:
+            # 真实查询，不计算相似度
+            for v in attr.values:
+                if (v.val[0] >= rang[0] and v.val[1] <= rang[1]):
+                    sub_id.append(int(v.index))
+                elif (v.val[0] <= rang[0] and v.val[1] >= rang[1]):
+                    sub_id.append(int(v.index))
+        elif attr.typ == settings.AttributeType.space:
+            for v in attr.values:
+                if v in rang:
+                    sub_id.append(int(v.index))
         # 求交集
         ids = ids.intersection(set(sub_id))
+        print ids
     return ids
 
 # 根据id过滤选出符合条件的xml子树
@@ -123,10 +139,37 @@ def filter_xml_by_id(nodes, ids):
 if __name__ == "__main__":
     nodes = reader.read_xml_file(settings.SOURCE_FILE_PATH)
     attrs = build_attrs(nodes)
+    '''
     q = {
         'type': u'cloudy',
         'temperature': [11, 14],
-        'district': 'HaiDian'
+        'district': 'HaiDian',
+        'time': (10, 14)
+    }
+    '''
+    # 纯时间查询
+    q_time = {
+        'time': (10, 12)
+    }
+    # 纯空间查询
+    q_space = {
+        'space': (39.9395951396,116.3928481661) #北海北
+    }
+    # 时空查询
+    q_st = {
+        'time': (10, 12),
+        'space': (39.9395951396,116.3928481661)
+    }
+    # 普通查询（分类 + 数值）
+    q_n = {
+        'type': 'rain',
+        'temperature': [12, 14]
+    }
+    # fuzzy
+    q = q_time
+    # 真实命中数据
+    q_real = {
+        'time': (10,12)
     }
     weights = importance.get_attribute_weights(q, attrs)
     sub_thresholds = importance.get_sub_thresholds(weights)
@@ -134,5 +177,26 @@ if __name__ == "__main__":
     print relaxed_query
     result_nodes = query(relaxed_query, nodes, attrs)
     result_attrs = build_attrs(result_nodes)
-    nav_tree = category.get_nav_tree(result_attrs, attrs)
-    category.dfs_print_nav_tree(nav_tree)
+    ids = []
+    for node in result_nodes:
+        print 'id: ' + node.attributes.item(0).value
+        ids.append(int(node.attributes.item(0).value))
+    print 'return: ' + str(len(result_nodes))
+    ids = set(ids)
+    # 计算relevant
+    relevant = []
+    real_nodes = query(q_real, nodes, attrs, True)
+    for r in real_nodes:
+        print 'id: ' + r.attributes.item(0).value
+        relevant.append(int(r.attributes.item(0).value))
+    # fuzzy减半
+    relevant = relevant[0:len(relevant)/2]
+    relevant = set(relevant)
+    print 'return: ' + str(len(relevant))
+    # nav_tree = category.get_nav_tree(result_attrs, attrs)
+    # relevant = set([6,7,8,18,19,29,31,32,44,53,54,55,56,66,67,68,78,79,80,90,91,92,102,116,138,139,149,150,151,152,161,162,163,164,173,174,175,176,185,186,187,188,197,198,199,200,211,212,221,222,224,233,235,245,246,247,248,257,258,259,260,269,270,271,272,281,282,283,284])
+    recall = len(relevant.intersection(ids)) * 1.0 / len(relevant)
+    precision = len(relevant.intersection(ids)) * 1.0 / len(ids)
+    f1 = (recall * precision) / (recall + precision)
+    print recall, precision, f1
+    # category.dfs_print_nav_tree(nav_tree)

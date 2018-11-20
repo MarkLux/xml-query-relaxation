@@ -37,13 +37,20 @@ attributes为预处理得到的属性辅助表，以name为key
 def get_attribute_weights(query, attributes):
     attr_weights = {}
     attr_idf = {}
-    for name, limit in query.items():
+    filter_q = {}
+    # 过滤时空属性
+    for k, v in query.items():
+        if attributes.get(k).typ == settings.AttributeType.time \
+            or attributes.get(k).typ == settings.AttributeType.space:
+            continue
+        filter_q[k] = v
+    for name, limit in filter_q.items():
         if isinstance(limit, list):
             attr_idf[name] = attributes.get(name).get_idf_range(limit)
         else:
             attr_idf[name] = attributes.get(name).get_idf(limit)
     sum_of_weights = sum(attr_idf.values())
-    for k in query.keys():
+    for k in filter_q.keys():
         attr_weights[k] = attr_idf.get(k) / sum_of_weights
     return attr_weights
 
@@ -52,6 +59,8 @@ def get_sub_thresholds(attr_weights):
     sum_of_power = 0
     for w in attr_weights.values():
         sum_of_power += pow(w, 2)
+    if sum_of_power == 0:
+        return {}
     m = settings.THRESHOLD / sum_of_power
     sub_thresholds = {}
     for attr in attr_weights.keys():

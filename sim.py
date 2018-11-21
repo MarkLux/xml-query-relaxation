@@ -109,7 +109,15 @@ def get_time_sim(time_x, time_y, prob = 1.0):
 
 # 计算空间属性的相似度
 def get_space_sim(point_a, point_b, prob = 1.0):
-    return get_pre_prob(prob) * (1 - calc_euclidean_distance(point_a, point_b) / settings.SPACE_MAX_DIST)
+    # 因为经纬度的差距太过细微，这里要先减去一个公有值再放大
+    zoom = 1000
+    base = 17
+    z_a = (zoom * point_a[0], zoom * point_a[1])
+    z_b = (zoom * point_b[0], zoom * point_b[1])
+    ed = calc_euclidean_distance(point_a, point_b)
+    dist = (1 -  ed / settings.SPACE_MAX_DIST)
+    print dist
+    return get_pre_prob(prob) * dist 
 
 # 获取前置系数
 def get_pre_prob(prob):

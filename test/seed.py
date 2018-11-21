@@ -33,77 +33,73 @@ general_attr_def = {
 }
 
 position_data_mock = {
-    'The Great Wall': {
-        'district': 'YanQing',
-        'location': (116.016809,40.361911)
-    },
-    'The Palace Museum': {
+    'ThePalaceMuseum': {
         'district': 'DongCheng',
         'location': (116.403414,39.924091)
     },
-    'The Summer Palace': {
+    'TheSummerPalace': {
         'district': 'HaiDian',
         'location': (116.278749,40.004869)
     },
-    'Lama Temple': {
+    'LamaTemple': {
         'district': 'DongCheng',
         'location': (116.423633,39.953628)
     },
-    'Garden of Gardens': {
+    'GardenOfGardens': {
         'district': 'HaiDian',
         'location': (116.309983,40.012884)
     },
-    'The Temple of Heaven': {
+    'TheTempleOfHeaven': {
         'district': 'DongCheng',
         'location': (116.417246,39.888243)
     },
-    'Temple of Confucius' : {
+    'TempleOfConfucius' : {
         'district': 'DongCheng',
-        'location': (39.9461390230,116.4150411626)
+        'location': (116.4150411626,39.9461390230)
     },
-    'The Imperial College': {
+    'TheImperialCollege': {
         'district': 'DongCheng',
-        'location': (39.9468822007,116.4132395326)
+        'location': (116.4132395326,39.9468822007)
     },
-    'Ming Cheng Wall Ruins Park ': {
+    'MingChengWallRuinsPark': {
         'district': 'DongCheng',
-        'location': (39.9010525899,116.4280396238)
+        'location': (116.4280396238,39.9010525899)
     },
-    'Tian An Men': {
+    'TianAnMen': {
         'district': 'XiCheng',
-        'location': (39.9088596409,116.3975157338)
+        'location': (116.3975157338,39.9088596409)
     },
-    'Altar of the Moon Park': {
+    'AltarOfTheMoonPark': {
         'district': 'XiCheng',
-        'location': (39.9166844333,116.3524948131)
+        'location': (116.3524948131,39.9166844333)
     },
-    'Bei Hai Park': {
+    'BeiHaiPark': {
         'district': 'XiCheng',
-        'location': (39.9275995766,116.3887407049)
+        'location': (116.3887407049,39.9275995766)
     },
-    'Shi Sha Lake': {
+    'ShiShaLake': {
         'district': 'XiCheng',
-        'location': (39.9405859540,116.3884021293)
+        'location': (116.3884021293,39.9405859540)
     },
-    'Jing Shan Park': {
+    'JingShanPark': {
         'district': 'XiCheng',
-        'location': (22.2636597551,113.5793713618)
+        'location': (113.5793713618,22.2636597551)
     },
-    'South Luogu Lane': {
+    'SouthLuoguLane': {
         'district': 'ChaoYang',
-        'location': (22.2636597551,113.5793713618)
+        'location': (113.5793713618,22.2636597551)
     },
-    'Aquaria of Beijing': {
+    'AquariaOfBeijing': {
         'district': 'ShunYi',
-        'location': (22.2636597551,113.5793713618)
+        'location': (113.5793713618,22.2636597551)
     },
-    'Xiang Shan Park': {
+    'XiangShanPark': {
         'district': 'HaiDian',
-        'location': (22.2636597551,113.5793713618)
+        'location': (113.5793713618,22.2636597551)
     },
-    'Geological Museum Of China': {
+    'GeologicalMuseumOfChina': {
         'district': 'HaiDian',
-        'location': (39.9915586721,116.3452162875)
+        'location': (116.3452162875,39.9915586721)
     }
 }
 
@@ -118,7 +114,7 @@ district_mock = {
 
 def generate_node(doc_root, id, postion='', date='', district='', w='', location=None, time=None):
     random_seed = random.random()
-    row_ele = ET.SubElement(doc_root, 'wheather', {'id': str(id), 'prob': str(random_seed)})
+    row_ele = ET.SubElement(doc_root, 'wheather', {'id': str(id), 'prob': str(random_seed), 'zack' : postion})
     # 创建general节点
     general_ele = ET.SubElement(row_ele, 'general')
     p_e = ET.SubElement(general_ele, 'position')
@@ -152,24 +148,23 @@ def output_xml(element, output_file):
 if __name__ == "__main__":
     doc_root = ET.Element('wheathers')
     positions = [
-        'The Great Wall',
-        'The Palace Museum',
-        'The Summer Palace',
-        'Lama Temple',
-        'Garden of Gardens',
-        'The Temple of Heaven',
-        'Temple of Confucius',
-        'The Imperial College',
-        'Ming Cheng Wall Ruins Park ',
-        'Tian An Men',
-        'Altar of the Moon Park',
-        'Bei Hai Park',
-        'Shi Sha Lake',
-        'Jing Shan Park',
-        'South Luogu Lane',
-        'Aquaria of Beijing',
-        'Xiang Shan Park',
-        'Geological Museum Of China'
+        'ThePalaceMuseum',
+        'TheSummerPalace',
+        'LamaTemple',
+        'GardenOfGardens',
+        'TheTempleOfHeaven',
+        'TempleOfConfucius',
+        'TheImperialCollege',
+        'MingChengWallRuinsPark',
+        'TianAnMen',
+        'AltarOfTheMoonPark',
+        'BeiHaiPark',
+        'ShiShaLake',
+        'JingShanPark',
+        'SouthLuoguLane',
+        'AquariaOfBeijing',
+        'XiangShanPark',
+        'GeologicalMuseumOfChina'
     ]
     date = [
         '20181116',
@@ -199,6 +194,8 @@ if __name__ == "__main__":
             # 枚举时间
             for t in time:
                 i += 1
+                if not position_data_mock.get(p):
+                    print p
                 district = position_data_mock.get(p).get('district')
                 generate_node(doc_root, i, postion=p, date=d, time=t, 
                 district=district, 

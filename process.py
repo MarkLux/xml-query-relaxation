@@ -31,9 +31,9 @@ def filter_blank(content):
 def dfs_build_attrs(id, prob, node, depth, result_map):
     # 先获取id标识和prob
     if not id:
-        id = node.attributes.item(0).value
+        id = node.attributes.item(1).value
     if not prob:
-        prob = float(node.attributes.item(1).value)
+        prob = float(node.attributes.item(2).value)
     # dfs方式遍历一个xml文档元素, 先构建对应的attr，只对ELEMENT_NODE生效
     if node.nodeType ==  xml.dom.Node.ELEMENT_NODE:
         attr_name = node.nodeName
@@ -131,7 +131,7 @@ def _query(q, ids, attrs, real=False):
 def filter_xml_by_id(nodes, ids):
     result = []
     for node in nodes:
-        id = int(node.attributes.item(0).value)
+        id = int(node.attributes.item(1).value)
         if id in ids:
             result.append(node)
     return result
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     '''
     # 纯时间查询
     q_time = {
-        'time': (10, 12)
+        'time': (10, 18)
     }
     # 纯空间查询
     q_space = {
@@ -166,10 +166,14 @@ if __name__ == "__main__":
         'temperature': [12, 14]
     }
     # fuzzy
-    q = q_time
+    q = q_space
     # 真实命中数据
     q_real = {
-        'time': (10,12)
+        'position': [
+            u'BeiHaiPark',
+            u'ShiShaLake',
+            u'JingShanPark'
+        ]
     }
     weights = importance.get_attribute_weights(q, attrs)
     sub_thresholds = importance.get_sub_thresholds(weights)
@@ -178,19 +182,23 @@ if __name__ == "__main__":
     result_nodes = query(relaxed_query, nodes, attrs)
     result_attrs = build_attrs(result_nodes)
     ids = []
+    pos = []
     for node in result_nodes:
-        print 'id: ' + node.attributes.item(0).value
-        ids.append(int(node.attributes.item(0).value))
+        print 'id: ' + node.attributes.item(1).value
+        ids.append(int(node.attributes.item(1).value))
+        pos.append(node.attributes.item(0).value)
     print 'return: ' + str(len(result_nodes))
+    print 'pos: ' + str(set(pos))
     ids = set(ids)
     # 计算relevant
     relevant = []
     real_nodes = query(q_real, nodes, attrs, True)
     for r in real_nodes:
-        print 'id: ' + r.attributes.item(0).value
-        relevant.append(int(r.attributes.item(0).value))
+        print 'id: ' + r.attributes.item(1).value
+        relevant.append(int(r.attributes.item(1).value))
     # fuzzy减半
-    relevant = relevant[0:len(relevant)/2]
+    end = int(len(relevant) * 0.64)
+    relevant = relevant[0:end]
     relevant = set(relevant)
     print 'return: ' + str(len(relevant))
     # nav_tree = category.get_nav_tree(result_attrs, attrs)

@@ -109,7 +109,8 @@ def _query(q, ids, attrs, real=False):
         elif attr.typ == settings.AttributeType.space and not real:
             # 空间属性
             for v in attr.values:
-                if sim.get_space_sim(rang, v.val, v.prob) >= settings.SPACE_THRESHOLD:
+                sim_s = sim.get_space_sim(rang, v.val, v.prob)
+                if  sim_s >= settings.SPACE_THRESHOLD:
                     sub_id.append(int(v.index))
         elif attr.typ == settings.AttributeType.time:
             # 真实查询，不计算相似度
@@ -153,27 +154,22 @@ if __name__ == "__main__":
     }
     # 纯空间查询
     q_space = {
-        'space': (39.9395951396,116.3928481661) #北海北
+        'space': (39.9073488438,116.4248852929)
     }
     # 时空查询
     q_st = {
-        'time': (10, 12),
-        'space': (39.9395951396,116.3928481661)
+        'time': (16, 18),
+        'space': (39.906481,116.34212)
     }
     # 普通查询（分类 + 数值）
     q_n = {
-        'type': 'rain',
-        'temperature': [12, 14]
+        'district': 'DongCheng'
     }
     # fuzzy
-    q = q_space
+    q = q_n
     # 真实命中数据
     q_real = {
-        'position': [
-            u'BeiHaiPark',
-            u'ShiShaLake',
-            u'JingShanPark'
-        ]
+        'district': [u'DongCheng', u'ChaoYang']
     }
     weights = importance.get_attribute_weights(q, attrs)
     sub_thresholds = importance.get_sub_thresholds(weights)
@@ -184,20 +180,18 @@ if __name__ == "__main__":
     ids = []
     pos = []
     for node in result_nodes:
-        print 'id: ' + node.attributes.item(1).value
         ids.append(int(node.attributes.item(1).value))
         pos.append(node.attributes.item(0).value)
     print 'return: ' + str(len(result_nodes))
-    print 'pos: ' + str(set(pos))
+    # print 'pos: ' + str(set(pos))
     ids = set(ids)
     # 计算relevant
     relevant = []
     real_nodes = query(q_real, nodes, attrs, True)
     for r in real_nodes:
-        print 'id: ' + r.attributes.item(1).value
         relevant.append(int(r.attributes.item(1).value))
     # fuzzy减半
-    end = int(len(relevant) * 0.64)
+    end = int(len(relevant) * 0.68)
     relevant = relevant[0:end]
     relevant = set(relevant)
     print 'return: ' + str(len(relevant))

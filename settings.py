@@ -6,7 +6,7 @@ the top constant settings in the expriment.
 '''
 
 # control the general relaxation threshold
-THRESHOLD = 0.5
+THRESHOLD = 0.58
 
 # the top element tag in raw xml file
 TOP_TAG = 'wheathers'
@@ -47,14 +47,14 @@ BUCKET_NUM = 3
 NAV_TREE_MAX_NODE = 2
 
 # 相似度最小接受系数（γ）
-SIM_MIN_PROB = 0.6
+SIM_MIN_PROB = 0.5
 
-# 空间距离最大距离
-SPACE_MAX_DIST = 17.8984452801
+# 空间距离最大距离, 10公里范围外的点会被舍弃
+SPACE_MAX_DIST = 15000
 
 # 时间距离最大距离
 TIME_MAX_DIST = 24
 
 TIME_THRESHOLD = 0.8
 
-SPACE_THRESHOLD = 0.9
+SPACE_THRESHOLD = 0.7

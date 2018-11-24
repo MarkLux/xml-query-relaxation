@@ -5,6 +5,8 @@ import numpy as np
 import settings
 import random
 
+from math import radians, cos, sin, asin, sqrt
+
 # 计算两个分类型数值的相似度
 def get_sim_categorical(attrs, weights, attr_name, x, y):
     intra = get_intra_sim_categorical(attrs, attr_name, x, y)
@@ -109,14 +111,10 @@ def get_time_sim(time_x, time_y, prob = 1.0):
 
 # 计算空间属性的相似度
 def get_space_sim(point_a, point_b, prob = 1.0):
-    # 因为经纬度的差距太过细微，这里要先减去一个公有值再放大
-    zoom = 1000
-    base = 17
-    z_a = (zoom * point_a[0], zoom * point_a[1])
-    z_b = (zoom * point_b[0], zoom * point_b[1])
-    ed = calc_euclidean_distance(point_a, point_b)
+    ed = haversine(point_a, point_b)
     dist = (1 -  ed / settings.SPACE_MAX_DIST)
-    print dist
+    if dist < 0:
+        dist = 0
     return get_pre_prob(prob) * dist 
 
 # 获取前置系数
@@ -127,8 +125,29 @@ def get_pre_prob(prob):
 def calc_euclidean_distance(a, b):
     return math.sqrt(math.pow((a[0] - b[0]), 2) + math.pow((a[1] - b[1]), 2))
 
+# 计算两个经纬度坐标的地理距离
+def haversine(a, b): # 经度1，纬度1，经度2，纬度2 （十进制度数）
+    lon1 = a[0]
+    lat1 = a[1] 
+    lon2 = b[0] 
+    lat2 = b[1]
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    """
+    # 将十进制度数转化为弧度
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+ 
+    # haversine公式
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    r = 6371 # 地球平均半径，单位为公里
+    return c * r * 1000
+
 if __name__ == "__main__":
-    time_mock_data = []
+    time_mock_data = [] 
 
     query_p = (12, 14)
 

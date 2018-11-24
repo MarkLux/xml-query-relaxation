@@ -71,7 +71,7 @@ position_data_mock = {
     },
     'AltarOfTheMoonPark': {
         'district': 'XiCheng',
-        'location': (116.3524948131,39.9166844333)
+        'location': (116.345657,39.913242)
     },
     'BeiHaiPark': {
         'district': 'XiCheng',
@@ -95,21 +95,21 @@ position_data_mock = {
     },
     'XiangShanPark': {
         'district': 'HaiDian',
-        'location': (113.5793713618,22.2636597551)
+        'location': (116.189141,39.990246)
     },
     'GeologicalMuseumOfChina': {
         'district': 'HaiDian',
-        'location': (116.3452162875,39.9915586721)
+        'location': (116.371754,39.923408)
     }
 }
 
 district_mock = {
-    'YanQing': ['sunny', 'windy'],
-    'HaiDian': ['sunny', 'windy'],
-    'DongCheng': ['rain', 'cloudy', 'windy'],
+    'YanQing': ['cloudy', 'rain'],
+    'HaiDian': ['sunny', 'cloudy'],
+    'XiCheng': ['rain', 'cloudy', 'windy'],
     'ShunYi': ['windy', 'snowy'],
-    'XiCheng': ['sunny', 'cloudy'],
-    'ChaoYang': ['windy', 'cloudy']
+    'DongCheng': ['sunny', 'windy'],
+    'ChaoYang': ['sunny', 'windy']
 }
 
 def generate_node(doc_root, id, postion='', date='', district='', w='', location=None, time=None):

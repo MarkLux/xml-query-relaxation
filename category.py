@@ -7,9 +7,14 @@ from settings import AttributeType, BUCKET_NUM, NAV_TREE_MAX_NODE
 from collections import Counter
 
 '''
-计算分类时使用的权重
-d_attrs -> 在整个数据集上计算得出的属性辅助表(map)
-r_attrs -> 在结果集上计算得出的属性辅助表(map)
+===== INTRO =====
+Result Categorization related functions.
+'''
+
+'''
+calculate the attribute weights according to query context
+r_attrs: the auxiliary attribute table build from result set
+d_attrs: the auxiliary attribute table build from full data set
 '''
 def calc_category_weights(r_attrs, d_attrs):
     weights = {}
@@ -23,15 +28,16 @@ def calc_category_weights(r_attrs, d_attrs):
         print kl_dis
         sum_distance += kl_dis
         weights[k] = kl_dis
-        # 进一步处理r_buckets
         r_buckets_map[k] = [i for i in r_buckets if i.cnt > 0]
     for k, w in weights.items():
         weights[k] = w / sum_distance
     return weights, r_buckets_map
 
 '''
-结果分类相关计算
-入参：typ -> 属性类型, values  -> 所有值集合
+Bucket Construction
+typ: attribute type
+values: the attribute values
+n_bucket: bucket number
 '''
 def build_buckets(typ, values, n_bucket = 0):
     buckets = []
@@ -45,7 +51,7 @@ def build_buckets(typ, values, n_bucket = 0):
     elif typ == AttributeType.numerical:
         low = min(values)
         up = max(values)
-        # 将最大上界增加一点幅度，这样才能造出完整的左闭右开区间
+        # hack: to build a right-close range we need to adjust the right bound
         max_val = up + 0.01
         lb = len(values) * 1.0 / n_bucket
         while low < max_val:
@@ -63,7 +69,10 @@ def build_buckets(typ, values, n_bucket = 0):
     return buckets
 
 '''
-根据在数据集上得到的分桶进一步计算在结果集上的分桶
+build buckets over result set according to the buckets built over data set.
+typ: attribute type
+d_buckets: buckets build on data set
+values: attribute values (on result set)
 '''
 def build_r_buckets(typ, d_buckets, values):
     r_buckets = []
@@ -80,14 +89,16 @@ def build_r_buckets(typ, d_buckets, values):
     return r_buckets
 
 '''
-计算KL-Distance
-d_buckets -> 在数据集上计算得到的分桶
-r_buckets -> 在结果集上计算得到的分桶
+calculate KL-Distance
+d_buckets: the buckets built on data set.
+r_buckets: the buckets built on result set.
+n_d: the value number of attribute on data set.
+n_r: the value number of attribute on result set.
 '''
 def calc_kl_distance(d_buckets, r_buckets, n_d, n_r):
     sum = 0
     for d in d_buckets:
-        # 遍历寻找r_buckets中对应的桶
+        # find the corresponding bucket on result set
         for r in r_buckets:
             if d.k == r.k:
                 pd = d.cnt * 1.0 / n_d
@@ -96,7 +107,7 @@ def calc_kl_distance(d_buckets, r_buckets, n_d, n_r):
                     continue
                 sum += (pd * math.log10(pd / pr))
                 continue
-        # 如果没有找到桶，直接置0
+        # if there is no corresponding bucket on result set, return 0
     return sum
 
 def query_vals(low, up, values):
@@ -107,32 +118,31 @@ def query_vals(low, up, values):
     return vals
 
 '''
-导航树生成算法
-weights -> 计算得出的分类权重集合
-attrs -> 以属性辅助表方式储存的结果集
-buckets_map -> 以dict方式储存的所有属性的分桶结果 
+generate the navigation tree
+weights: the attribute weights built from query context
+attrs: the attribute auxilary table
+buckets_map: the buckets built, in format of map
 '''
 def generate_nav_tree(weights, attrs, buckets_map):
     level = 0
-    # 1. 生成一个空的根节点, 所有的id从attrs的第一个里面取
+    # 1. create an empty root node
     for a in attrs.values():
         root = NavNode('root', '', level, a.val_map.keys())
         break
-    # 储存level - 1 层所有的分类节点
+
     level_categories = [root]
     while weights:
         level += 1
-        # 暂存本level生成的所有新分类节点
+        # save the new category node generated in this level temporarily
         temp_level_categories = []
-        # 2. 选定本层要分类的属性，并将其从map中移除
+        # 2. select the category attribute of this level and remove it from the map.
         category_name = select_category(weights)
         weights.pop(category_name)
-        # 3. 枚举该属性的所有桶
+        # 3. enumerate all the buckets of category attribute
         attr = attrs.get(category_name)
         buckets = buckets_map.get(category_name)
         for category in level_categories:
             if len(category.indexes) <= NAV_TREE_MAX_NODE:
-                # 子节点数已经满足限制，无需再进一步分类了
                 continue
             for bucket in buckets:
                 child = build_nav_node(attr.name, bucket, attr.val_map, category.indexes, level)
@@ -141,7 +151,14 @@ def generate_nav_tree(weights, attrs, buckets_map):
         level_categories = temp_level_categories
     return root
             
-
+'''
+build a navigation tree node
+attr_name: attribute name
+bucket: the corresponding bucket
+values: the values belong to this node
+indexes: indexes to original xml file
+level: the level
+'''
 def build_nav_node(attr_name, bucket, values, indexes, level):
     this_indexes = []
     for id in indexes:
@@ -155,13 +172,18 @@ def build_nav_node(attr_name, bucket, values, indexes, level):
     return NavNode(attr_name, bucket.k, level, this_indexes)
 
 
-
+'''
+select a new category to build node
+'''
 def select_category(category_weights):
     max_val = max(category_weights.values())
     for k, v in category_weights.items():
         if v == max_val:
             return k
 
+'''
+print the navigation tree in a pretty way
+'''
 def dfs_print_nav_tree(node, blank='', flag=True):
     children = [c for c in node.children if len(c.indexes)]
     if children:
@@ -180,13 +202,19 @@ def dfs_print_nav_tree(node, blank='', flag=True):
 
 
 '''
-入口
+entry function
+build a navigation tree from result sets.
+r_attrs: the auxiliary attribute table build from result set
+d_attrs: the auxiliary attribute table build from full data set
 '''
 def get_nav_tree(r_attrs, d_attrs):
     weights, r_buckets_map = calc_category_weights(r_attrs, d_attrs)
     nav_tree = generate_nav_tree(weights, r_attrs, r_buckets_map)
     return nav_tree
 
+'''
+test cases
+'''
 if __name__ == "__main__":
     # 模拟验证权重的合理性
     mock_values = {

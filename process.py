@@ -9,16 +9,23 @@ import category
 from define import Attribute
 
 '''
-核心相关处理函数
+===== INTRO =====
+the core process flow
 '''
 
-# 构建属性表
+'''
+build attribute auxiliary table from xml tree nodes.
+nodes: the xml document tree nodes.
+'''
 def build_attrs(nodes):
     attr_map = {}
     for node in nodes:
         dfs_build_attrs(None, None, node, 0, attr_map)
     return attr_map
 
+'''
+util function: trim all the blank chars in content
+'''
 def filter_blank(content):
     return content.replace('\n', '').replace('\t', '').replace(' ','')
 
@@ -28,17 +35,26 @@ def filter_blank(content):
 2. 对于query里所涉及到的属性值，还需要拿到和其他属性之间的关联关系 -> 计算sim
 '''
 
+'''
+build attribute auxilary table for a xml document tree
+this function use deep-frist-search (dfs) algorithm to walk all the tree nodes in a recursive way
+id: the current node id
+prob: the current node probablity
+node: the current node
+depth: the recursive depth
+result_map: a map to save the attribute auxilary table
+'''
 def dfs_build_attrs(id, prob, node, depth, result_map):
-    # 先获取id标识和prob
+    # get id and prob of the node, if not given.
     if not id:
         id = node.attributes.item(1).value
     if not prob:
         prob = float(node.attributes.item(2).value)
-    # dfs方式遍历一个xml文档元素, 先构建对应的attr，只对ELEMENT_NODE生效
+    # walk a xml node in dfs way, only work for ELEMENT_NODE type.
     if node.nodeType ==  xml.dom.Node.ELEMENT_NODE:
         attr_name = node.nodeName
         attr = result_map.get(attr_name)
-        # 跳过没有标记的tag节点
+        # skip all the tag without marks
         if not attr and (settings.ATTR_TYPES.has_key(attr_name)):
             attr = Attribute(attr_name, settings.ATTR_TYPES.get(attr_name) , depth)
             result_map[attr_name] = attr
@@ -48,18 +64,22 @@ def dfs_build_attrs(id, prob, node, depth, result_map):
                 y = float(node.attributes.item(1).value)
                 attr.add_val(id, (x,y), prob)
         for child_node in node.childNodes:
-            # 处理字面值
+            # handle text nodes.
             if child_node.nodeType == xml.dom.Node.TEXT_NODE:
                 content = filter_blank(child_node.nodeValue)
                 if content:
                     attr.add_val(id, content, prob)
-            # 处理下一层的其他节点
+            # handle the children nodes.
             if child_node.nodeType == xml.dom.Node.ELEMENT_NODE:
                 dfs_build_attrs(id, prob, child_node, depth + 1, result_map)
 
 '''
-查询松弛，输入原始查询，返回松弛过后的查询
-times: 第几次松弛
+relax a query to a new one according to attribute weights & sub thresholds
+attrs: attribute auxilary table
+sub_thresholds: sub threshold for each attribute
+weights: attribute weights
+raw_query: the original query in format of map
+times: the relaxed times
 '''   
 def query_relax(attrs, sub_thresholds, weights, raw_query, times = 0):
     relaxed_query = {}
@@ -74,6 +94,7 @@ def query_relax(attrs, sub_thresholds, weights, raw_query, times = 0):
     return relaxed_query
 
 '''
+main entry of the query
 核心查询入口
 q: 用户查询，data: xml数据集， attrs: 第一次遍历时得到的索引
 输出：xml树集合

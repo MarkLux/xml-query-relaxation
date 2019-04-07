@@ -4,25 +4,36 @@ import importance
 import settings
 
 '''
-属性的基本定义整合到此类
+====== INTRO =====
+in this file, some basic model is defined
+'''
+
+'''
+attribute defintion
+this class is used as auxiliary table in process.
 '''
 class Attribute(object):
     def __init__(self, name, typ, depth = 0):
+        # the attribute name
         self.name = name
-        # 严格规定，values的类型只有数字和字符两种可能性，不存在其他的复杂类型
-        # Val对象数组
+        # the attribute values, this is a collection of Val objects.
         self.values = []
-        # valMap，用于兼容一些历史逻辑
+        # attribute values in map format, key: identifier of node
         self.val_map = {}
-        # 缓存，扁平化数值
+        # cache array of values
         self.flat_values = []
+        # attribute type, see settings.py
         self.typ = typ
+        # the depth of attribute (level 0 - n)
         self.depth = depth
-        # idf辅助表，缓存已经计算出的idf，减少重复计算
+        # the cache map of attribute value idf
         self.attr_idf = {}
     
+    '''
+    add a new value
+    '''
     def add_val(self, identifier, val, prob = 1.0):
-        # 如果是numerical的属性，这里要把文本值转换成小数
+        # covert the value into float for numerical attribute.
         if (self.typ == settings.AttributeType.numerical):
             val = float(val)
         new_val = Val(identifier, val, prob)
@@ -30,11 +41,14 @@ class Attribute(object):
         self.val_map[identifier] = val
         self.flat_values.append(val)
 
+    '''
+    calculate idf of a single value.
+    val: the single value
+    '''
     def get_idf(self, val):
-        # 如果用户输入的限制条件是单个值, 如: view = sea, 区分数值型和分类型属性
-        # NOTICE: 后面计算idf时，有可能会用到深度属性来增强
+        # 
         if self.attr_idf.has_key(val):
-            # 先从缓存的辅助表中读
+            # try to read from cache first
             return self.attr_idf.get(val)
 
         if self.typ == settings.AttributeType.categorical:
@@ -48,26 +62,28 @@ class Attribute(object):
         self.attr_idf[val] = idf
         return idf
 
+    '''
+    calculate the idf of a value range(for numerical attribute) or collection(for categorical attribute)
+    vals: the range or collection in format of list
+          i.e. [1.0, 10.0] for numerical attribute / ['sunny', 'cloudy', 'windy'] for categorical attribute
+    '''
     def get_idf_range(self, vals):
-        # 如果用户输入的限制条件是一个范围，对于分类型属性是一个集合，如 wheather in [cloudy, rainy, sunny]
-        # 对于数值型属性是一个区间, 如price in [150, 200]
-        # 统一用vals这个list表示
         if self.typ == settings.AttributeType.numerical:
-            # 如果是数值型变量，要将区间先扩展成所有可能的取值集合，认为所有的区间都是开区间
+            # if the input is a numerical range, convert it into a collection of possible values
             start = vals[0]
             end = vals[1]
             value_set = set(self.flat_values)
             vals = [i for i in value_set if i >= start and i <= end]
 
-        # 最终输出所有可能取值里，idf最小的那个
-        min_idf = 1 # idf不可能大于1
+        # the output idf is the mininum one of the possible values.
+        min_idf = 1
         for v in vals:
             v_idf = self.attr_idf.get(v) or self.get_idf(v)
             if v_idf < min_idf:
                 min_idf = v_idf
         return min_idf
 
-    # 获取一个属性出现的次数, 并使用概率加权
+    # calculate the sum of probablity for a value
     def get_occurs(self, val):
         occur = 0
         for v in self.values:
@@ -75,24 +91,32 @@ class Attribute(object):
                 occur += v.prob
         return occur
 '''
-结果分类中使用的数值桶结构
+bucket definition
 '''
 class Bucket(object):
     def __init__(self, typ):
         self.typ = typ
+        # the bucket name (key)
         self.k = ''
+        # the bucket range (for numerical attribute)
         self.k_range = []
+        # number of values in this bucket
         self.cnt = 0
 
 '''
-导航树节点定义
+nav tree node definition
 '''
 class NavNode(object):
     def __init__(self, attr, label, level, indexes):
+        # level
         self.level = level
+        # children nodes
         self.children = []
+        # attribute name
         self.attr = attr
+        # label for user to recognize
         self.label = label
+        # indexes to xml tree ndoes.
         self.indexes = indexes
 
     def add_index(self, id):
@@ -102,10 +126,13 @@ class NavNode(object):
         self.children.append(child)
 
 '''
-值定义
+the definition of a single value
 '''
 class Val(object):
     def __init__(self, index, val, prob=1.0):
+        # the index of xml node it belongs to
         self.index = index
+        # value
         self.val = val
+        # fuzzy probablity
         self.prob = prob

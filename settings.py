@@ -14,7 +14,7 @@ TOP_TAG = 'wheathers'
 # the single element tag
 NODE_TAG = 'wheather'
 
-SOURCE_FILE_PATH = 'test/result.xml'
+SOURCE_FILE_PATH = 'data.xml'
 
 # the pre factor for inter & intra probablity
 SIM_A = 0.5

@@ -41,9 +41,9 @@ result_map: a map to save the attribute auxilary table
 def dfs_build_attrs(id, prob, node, depth, result_map):
     # get id and prob of the node, if not given.
     if not id:
-        id = node.attributes.item(1).value
+        id = node.attributes.item(0).value
     if not prob:
-        prob = float(node.attributes.item(2).value)
+        prob = float(node.attributes.item(1).value)
     # walk a xml node in dfs way, only work for ELEMENT_NODE type.
     if node.nodeType ==  xml.dom.Node.ELEMENT_NODE:
         attr_name = node.nodeName
@@ -146,7 +146,7 @@ filter out nodes with specified ids from a xml tree.
 def filter_xml_by_id(nodes, ids):
     result = []
     for node in nodes:
-        id = int(node.attributes.item(1).value)
+        id = int(node.attributes.item(0).value)
         if id in ids:
             result.append(node)
     return result
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     ids = []
     pos = []
     for node in result_nodes:
-        ids.append(int(node.attributes.item(1).value))
+        ids.append(int(node.attributes.item(0).value))
     # record result set size
     print 'return: ' + str(len(result_nodes))
     ids = set(ids)

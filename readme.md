@@ -59,9 +59,11 @@ Explanation for tags & attributes
 
 1. Dump weather forecast data from source website and convert it into XML Docuement, put it into `SOURCE_FILE_PATH` (definded in `settings.py`)
 
-2. Run `process.py`
+2. Using `kmeans-clustering.py` to run `k-means++` clustering algorithm for sptiotemporal attribute, and record them in `cluster.py`
 
-3. After process, a navigation tree would be returned, for instance:
+3. Run `process.py`
+
+4. After process, a navigation tree would be returned, for instance:
 
     ```
     |_[root]() -> 360

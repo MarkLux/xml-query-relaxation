@@ -94,12 +94,14 @@ class Attribute(object):
 bucket definition
 '''
 class Bucket(object):
-    def __init__(self, typ):
+    def __init__(self, typ, k='', k_range=[], cluster=[], cnt=0):
         self.typ = typ
         # the bucket name (key)
         self.k = ''
         # the bucket range (for numerical attribute)
         self.k_range = []
+        # the cluster results (for temporal & spatio attribute)
+        self.cluster = []
         # number of values in this bucket
         self.cnt = 0
 

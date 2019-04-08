@@ -16,16 +16,17 @@ NODE_TAG = 'wheather'
 
 SOURCE_FILE_PATH = 'test/result.xml'
 
-# 用于调整相似度表现的辅助值
+# the pre factor for inter & intra probablity
 SIM_A = 0.5
 
-# 属性分类枚举
+# enumeration of attribute type
 class AttributeType(Enum):
     categorical = 0
     numerical = 1
     time = 2
     space = 3
 
+# type suggestion for each attribute
 ATTR_TYPES = {
     'position': AttributeType.categorical,
     'temperature': AttributeType.numerical,
@@ -40,21 +41,23 @@ ATTR_TYPES = {
     'space': AttributeType.space
 }
 
-# 数值型属性进行分桶时的默认桶数
+# the default bucket num of bucket construcation
 BUCKET_NUM = 3
 
-# 导航树叶子节点最大个数
+# tha max tree node number of leaf category attribute
 NAV_TREE_MAX_NODE = 2
 
-# 相似度最小接受系数（γ）
+# fuzzy coincidence factor（γ）
 SIM_MIN_PROB = 0.5
 
-# 空间距离最大距离, 10公里范围外的点会被舍弃
+# the max space distance threshold (meter)
 SPACE_MAX_DIST = 15000
 
-# 时间距离最大距离
+# the max time range distance threshold (hour)
 TIME_MAX_DIST = 24
 
+# sub threshold for temporal attribute
 TIME_THRESHOLD = 0.8
 
+# sub threshold for spatio attribute
 SPACE_THRESHOLD = 0.7

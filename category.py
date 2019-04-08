@@ -198,7 +198,7 @@ def dfs_print_nav_tree(node, blank='', flag=True):
             else:
                 dfs_print_nav_tree(children[i], blank, True)
     else:
-        print blank + '|_[{attr}]({label}) -> {cnt}'.format(attr=node.attr, label=node.label, cnt=len(node.indexes))
+        print blank + '|_[{attr}]({label}) -> {cnt} [{ids}]'.format(attr=node.attr, label=node.label, cnt=len(node.indexes), ids=node.indexes)
 
 
 '''
